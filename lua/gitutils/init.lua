@@ -90,7 +90,10 @@ M.continue = function()
 end
 
 M.setup = function()
-  gh.refresh_head()
+  if vim.fn.executable("git") == 0 then
+    vim.notify("git not found", vim.log.levels.ERROR)
+    return
+  end
 
   local subcmds = {
     amend = M.amend,
