@@ -47,4 +47,19 @@ M.rebase_exit = function(rebase_state)
   return on_exit
 end
 
+M.diff_view = function(hash)
+  local filepath = vim.fn.expand("%")
+  local filetype = vim.bo.filetype
+  local content = vim.fn.systemlist({ "git", "show", hash .. ":" .. filepath })
+  vim.cmd("diffthis")
+  vim.cmd("vsplit")
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_win_set_buf(0, buf)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
+  vim.bo[buf].filetype = filetype
+  vim.bo[buf].bufhidden = "wipe"
+  vim.cmd("diffthis")
+  vim.cmd("wincmd p")
+end
+
 return M

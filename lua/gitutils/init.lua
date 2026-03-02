@@ -2,6 +2,7 @@ local M = {}
 
 local gh = require("gitutils.helpers")
 local rebase_state = nil
+local diff_hash = nil
 
 M.commit = function()
   vim.ui.input({ prompt = "Commit message: " }, function(msg)
@@ -89,6 +90,34 @@ M.continue = function()
   })
 end
 
+M.diff = function()
+  vim.ui.input({ prompt = gh.log(5, "%h %s%d") .. "\nDiff against: " }, function(hash)
+    if not hash or hash == "" then return end
+    diff_hash = hash
+    local files = vim.fn.systemlist({ "git", "diff", "--name-only", hash })
+    if not files or not next(files) then return end
+    vim.fn.setqflist(vim.tbl_map(function(f) return { filename = f } end, files), "r")
+    vim.cmd("copen")
+    vim.cmd("cfirst")
+    gh.diff_view(hash)
+  end)
+end
+
+M.qf_diff = function(dir)
+  if not diff_hash or diff_hash == "" then return end
+  local qf = vim.fn.getqflist({ idx = 0, size = 0 })
+  if dir == "next" and qf.idx == qf.size then return end
+  if dir == "prev" and qf.idx == 1 then return end
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    if vim.api.nvim_buf_get_option(buf, "buftype") == "nofile" then
+      vim.api.nvim_win_close(win, true) -- close previous diff
+    end
+  end
+  vim.cmd("c" .. dir)
+  gh.diff_view(diff_hash)
+end
+
 M.setup = function()
   if vim.fn.executable("git") == 0 then
     vim.notify("git not found", vim.log.levels.ERROR)
@@ -102,6 +131,7 @@ M.setup = function()
     extend = M.extend,
     rebase = M.rebase,
     continue = M.continue,
+    diff = M.diff,
   }
 
   vim.api.nvim_create_user_command("Gitutils", function(opts)
