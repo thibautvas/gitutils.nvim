@@ -33,13 +33,13 @@
 
               vim.opt.rulerformat = '%66(%{g:gitutils_head}%= %l,%c%)'
 
-              vim.keymap.set("n", "<leader>hc", gu.commit, { desc = "Gitutils commit" })
-              vim.keymap.set("n", "<leader>he", gu.extend, { desc = "Gitutils extend" })
-              vim.keymap.set("n", "<leader>hb", gu.checkout, { desc = "Gitutils checkout" })
-              vim.keymap.set("n", "<leader>hx", gu.rebase, { desc = "Gitutils interactive rebase" })
-              vim.keymap.set("n", "<leader>hv", gu.continue, { desc = "Gitutils rebase continue" })
+              vim.keymap.set("n", "<space>hc", gu.commit, { desc = "Gitutils commit" })
+              vim.keymap.set("n", "<space>he", gu.extend, { desc = "Gitutils extend" })
+              vim.keymap.set("n", "<space>hb", gu.checkout, { desc = "Gitutils checkout" })
+              vim.keymap.set("n", "<space>hx", gu.rebase, { desc = "Gitutils interactive rebase" })
+              vim.keymap.set("n", "<space>hv", gu.continue, { desc = "Gitutils rebase continue" })
 
-              vim.keymap.set("n", "<leader>hg", gu.diff, { desc = "Gitutils diff repo" })
+              vim.keymap.set("n", "<space>hg", gu.diff, { desc = "Gitutils diff repo" })
               vim.keymap.set("n", "]g", function()
                 gu.qf_diff("next")
               end, { desc = "Gitutils next diff" })
