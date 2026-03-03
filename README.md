@@ -30,6 +30,7 @@ which I have used in the past but never to their fullest extent.
 - Gitutils checkout: `git checkout <hash>`
 - Gitutils rebase: `git rebase -i <hash>`
 - Gitutils continue: `git rebase --continue`
+- Gitutils diff: `git diff <hash>`
 
 ## Configuration
 
@@ -44,12 +45,14 @@ I have not exposed any setup option at the moment,
 as this was born from the way I personally use the editor,
 that might change as the project matures.
 
-I have expose a `vim.g.gitutils_head` global variable
+I have exposed a `vim.g.gitutils_head` global variable
 that I use to display the last commit message and branch at the bottom of the screen.
 I have it in the ruler, I suppose others might prefer it in the status line though:
 ```lua
-local guh = require("gitutils.helpers")
-guh.refresh_head()
+vim.api.nvim_create_autocmd({ "VimEnter", "DirChanged" }, {
+  pattern = "*",
+  callback = require("gitutils.helpers").refresh_head
+})
 
 vim.opt.rulerformat = '%66(%{g:gitutils_head}%= %l,%c%)'
 ```
@@ -74,4 +77,12 @@ vim.keymap.set("n", "<leader>hf", function()
     gu.extend()
   end)
 end, { desc = "Gitsigns stage and Gitutils extend" })
+
+vim.keymap.set("n", "<leader>hg", gu.diff, { desc = "Gitutils diff repo" })
+vim.keymap.set("n", "]g", function()
+  gu.qf_diff("next")
+end, { desc = "Gitutils next diff" })
+vim.keymap.set("n", "[g", function()
+  gu.qf_diff("prev")
+end, { desc = "Gitutils prev diff" })
 ```
