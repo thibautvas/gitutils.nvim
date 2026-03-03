@@ -1,5 +1,10 @@
 # gitutils.nvim
 
+## Playground
+```bash
+nix run github:thibautvas/gitutils.nvim
+```
+
 ## Introduction
 
 A minimal and unambitious neovim plugin designed to streamline some common git workflows,
