@@ -30,7 +30,13 @@ end
 M.checkout = function()
   vim.ui.input({ prompt = gh.log(5, "%h %s%d") .. "\nCheckout: " }, function(hash)
     if not hash or hash == "" then return end
-    vim.fn.system({ "git", "checkout", hash })
+    local output = vim.fn.system({ "git", "checkout", hash })
+    if output:find("pathspec") and output:find("did not match") then
+      vim.ui.input({ prompt = "Create branch " .. hash .. "? " }, function(yn)
+        if yn ~= "y" then return end
+        vim.fn.system({ "git", "checkout", "-b", hash })
+      end)
+    end
     gh.error_interrupt("checkout")
     vim.cmd("checktime")
     gh.refresh_head()
