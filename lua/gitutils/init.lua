@@ -90,6 +90,13 @@ M.continue = function()
   })
 end
 
+M.diffthis = function()
+  vim.ui.input({ prompt = gh.log(5, "%h %s%d") .. "\nDiff against: " }, function(hash)
+    if not hash or hash == "" then return end
+    gh.diff_view(hash)
+  end)
+end
+
 M.diff = function()
   vim.ui.input({ prompt = gh.log(5, "%h %s%d") .. "\nDiff against: " }, function(hash)
     if not hash or hash == "" then return end
@@ -132,6 +139,7 @@ M.setup = function()
     rebase = M.rebase,
     continue = M.continue,
     diff = M.diff,
+    diffthis = M.diffthis,
   }
 
   vim.api.nvim_create_user_command("Gitutils", function(opts)
