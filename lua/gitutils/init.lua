@@ -28,7 +28,7 @@ M.extend = function()
 end
 
 M.checkout = function()
-  vim.ui.input({ prompt = gh.log(5, "%h %s%d") .. "\nCheckout: " }, function(hash)
+  vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\nCheckout: " }, function(hash)
     if not hash or hash == "" then return end
     local output = vim.fn.system({ "git", "checkout", hash })
     if output:find("pathspec") and output:find("did not match") then
@@ -44,7 +44,7 @@ M.checkout = function()
 end
 
 M.rebase = function()
-  vim.ui.input({ prompt = gh.log(5, "%h %s%d") .. "\nRebase from: " }, function(hash)
+  vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\nRebase from: " }, function(hash)
     if not hash or hash == "" then return end
 
     local server = vim.v.servername
@@ -97,19 +97,24 @@ M.continue = function()
 end
 
 M.diffthis = function()
-  vim.ui.input({ prompt = gh.log(5, "%h %s%d") .. "\nDiff against: " }, function(hash)
+  vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\nDiff against: " }, function(hash)
     if not hash or hash == "" then return end
     gh.diff_view(hash)
   end)
 end
 
 M.diff = function()
-  vim.ui.input({ prompt = gh.log(5, "%h %s%d") .. "\nDiff against: " }, function(hash)
+  vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\nDiff against: " }, function(hash)
     if not hash or hash == "" then return end
     diff_hash = hash
     local files = vim.fn.systemlist({ "git", "diff", "--name-only", hash })
+    local w = math.max(unpack(vim.tbl_map(string.len, files)))
     if not files or not next(files) then return end
-    vim.fn.setqflist(vim.tbl_map(function(f) return { filename = f } end, files), "r")
+    vim.fn.setqflist(vim.tbl_map(function(f) return {
+      filename = f,
+      module = string.format("%-" .. w .. "s ", f),
+      text = gh.log(f, 1, "%s"),
+    } end, files), "r")
     vim.cmd("copen")
     vim.cmd("cfirst")
     gh.diff_view(hash)

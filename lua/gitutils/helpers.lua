@@ -1,7 +1,7 @@
 local M = {}
 
-M.log = function(lb, format)
-  return vim.fn.system({ "git", "log", "--reverse", "-n" .. lb, "--pretty=format:" .. format })
+M.log = function(ref, lb, format)
+  return vim.fn.system({ "git", "log", "--reverse", "-n" .. lb, "--pretty=format:" .. format, ref })
 end
 
 M.refresh_head = function()
@@ -11,7 +11,7 @@ M.refresh_head = function()
     return
   end
   local ref_clean = vim.trim(ref)
-  local title = M.log(1, "%s")
+  local title = M.log("HEAD", 1, "%s")
   vim.g.gitutils_head = title .. " -> " .. ref_clean
 end
 
