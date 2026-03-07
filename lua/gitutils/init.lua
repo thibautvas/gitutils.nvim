@@ -5,84 +5,96 @@ local rebase_state = nil
 local diff_hash = nil
 
 M.commit = function()
-  vim.ui.input({ prompt = "Commit message: " }, function(msg)
-    if not msg or msg == "" then return end
-    vim.fn.system({ "git", "commit", "-m", msg })
-    gh.error_interrupt("commit")
-    gh.refresh_head()
-  end)
+  gh.prompt_action(
+    "commit",
+    "Commit message: ",
+    function(msg)
+      vim.fn.system({ "git", "commit", "-m", msg })
+    end,
+    gh.refresh_head
+  )
 end
 
 M.amend = function()
-  vim.ui.input({ prompt = "Amend message: " }, function(msg)
-    if not msg or msg == "" then return end
-    vim.fn.system({ "git", "commit", "--amend", "-m", msg })
-    gh.error_interrupt("amend")
-    gh.refresh_head()
-  end)
+  gh.prompt_action(
+    "amend",
+    "Amend message: ",
+    function(msg)
+      vim.fn.system({ "git", "commit", "--amend", "-m", msg })
+    end,
+    gh.refresh_head
+  )
 end
 
 M.extend = function()
-  vim.fn.system({ "git", "commit", "--amend", "--no-edit" })
-  gh.error_interrupt("extend")
+  vim.fn.system("git commit --amend --no-edit")
+  if vim.v.shell_error ~= 0 then
+    vim.notify("Gitutils extend failed", vim.log.levels.ERROR)
+  end
 end
 
 M.checkout = function()
-  vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\nCheckout: " }, function(hash)
-    if not hash or hash == "" then return end
-    local output = vim.fn.system({ "git", "checkout", hash })
-    if output:find("pathspec") and output:find("did not match") then
-      vim.ui.input({ prompt = "Create branch " .. hash .. "? " }, function(yn)
-        if yn ~= "y" then return end
-        vim.fn.system({ "git", "checkout", "-b", hash })
-      end)
+  gh.prompt_action(
+    "checkout",
+    gh.log("HEAD", 5, "%h %s%d") .. "\nCheckout: ",
+    function(hash)
+      local output = vim.fn.system({ "git", "checkout", hash })
+      if output:find("pathspec") and output:find("did not match") then
+        vim.ui.input({ prompt = "Create branch " .. hash .. "? " }, function(yn)
+          if yn ~= "y" then return end
+          vim.fn.system({ "git", "checkout", "-b", hash })
+        end)
+      end
+    end,
+    function()
+      vim.cmd("checktime")
+      gh.refresh_head()
     end
-    gh.error_interrupt("checkout")
-    vim.cmd("checktime")
-    gh.refresh_head()
-  end)
+  )
 end
 
 M.rebase = function()
-  vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\nRebase from: " }, function(hash)
-    if not hash or hash == "" then return end
+  gh.prompt_action(
+    "rebase",
+    gh.log("HEAD", 5, "%h %s%d") .. "\nRebase from: ",
+    function(hash)
+      local server = vim.v.servername
+      if not server or server == "" then return end
 
-    local server = vim.v.servername
-    if not server or server == "" then return end
+      local fifo = vim.fn.tempname()
+      vim.fn.system({ "mkfifo", fifo })
 
-    local fifo = vim.fn.tempname()
-    vim.fn.system({ "mkfifo", fifo })
+      local script = vim.fn.tempname() .. ".sh"
+      local f = assert(io.open(script, "w"))
+      f:write(string.format(
+        "#!/bin/sh\nnvim --server '%s' --remote \"$1\"\ncat '%s' > /dev/null\n",
+      server, fifo))
+      f:close()
+      vim.fn.system({ "chmod", "+x", script })
 
-    local script = vim.fn.tempname() .. ".sh"
-    local f = assert(io.open(script, "w"))
-    f:write(string.format(
-      "#!/bin/sh\nnvim --server '%s' --remote \"$1\"\ncat '%s' > /dev/null\n",
-    server, fifo))
-    f:close()
-    vim.fn.system({ "chmod", "+x", script })
+      local env = {
+        GIT_SEQUENCE_EDITOR = script,
+        GIT_EDITOR = script,
+      }
 
-    local env = {
-      GIT_SEQUENCE_EDITOR = script,
-      GIT_EDITOR = script,
-    }
+      local au_id = vim.api.nvim_create_autocmd("BufUnload", {
+        pattern = {
+          "*/git-rebase-todo",
+          "*/COMMIT_EDITMSG",
+        },
+        callback = function()
+          vim.fn.jobstart({ "sh", "-c", "echo done > " .. vim.fn.shellescape(fifo) })
+        end
+      })
 
-    local au_id = vim.api.nvim_create_autocmd("BufUnload", {
-      pattern = {
-        "*/git-rebase-todo",
-        "*/COMMIT_EDITMSG",
-      },
-      callback = function()
-        vim.fn.jobstart({ "sh", "-c", "echo done > " .. vim.fn.shellescape(fifo) })
-      end
-    })
+      rebase_state = { fifo = fifo, script = script, env = env, au_id = au_id }
 
-    rebase_state = { fifo = fifo, script = script, env = env, au_id = au_id }
-
-    vim.fn.jobstart({ "git", "rebase", "-i", hash }, {
-      env = env,
-      on_exit = gh.rebase_exit(rebase_state),
-    })
-  end)
+      vim.fn.jobstart({ "git", "rebase", "-i", hash }, {
+        env = env,
+        on_exit = gh.rebase_exit(rebase_state),
+      })
+    end
+  )
 end
 
 M.continue = function()
@@ -90,35 +102,41 @@ M.continue = function()
     vim.notify("No rebase in progress", vim.log.levels.WARN)
     return
   end
-  vim.fn.jobstart({ "git", "rebase", "--continue" }, {
+  vim.fn.jobstart("git rebase --continue", {
     env = rebase_state.env,
     on_exit = gh.rebase_exit(rebase_state),
   })
 end
 
 M.diffthis = function()
-  vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\nDiff against: " }, function(hash)
-    if not hash or hash == "" then return end
-    gh.diff_view(hash)
-  end)
+  gh.prompt_action(
+    "diffthis",
+    gh.log("HEAD", 5, "%h %s%d") .. "\nDiff against: ",
+    function(hash)
+      gh.diff_view(hash)
+    end
+  )
 end
 
 M.diff = function()
-  vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\nDiff against: " }, function(hash)
-    if not hash or hash == "" then return end
-    diff_hash = hash
-    local files = vim.fn.systemlist({ "git", "diff", "--name-only", hash })
-    local w = math.max(unpack(vim.tbl_map(string.len, files)))
-    if not files or not next(files) then return end
-    vim.fn.setqflist(vim.tbl_map(function(f) return {
-      filename = f,
-      module = string.format("%-" .. w .. "s ", f),
-      text = gh.log(f, 1, "%s"),
-    } end, files), "r")
-    vim.cmd("copen")
-    vim.cmd("cfirst")
-    gh.diff_view(hash)
-  end)
+  gh.prompt_action(
+    "diff",
+    gh.log("HEAD", 5, "%h %s%d") .. "\nDiff repo against: ",
+    function(hash)
+      diff_hash = hash
+      local files = vim.fn.systemlist({ "git", "diff", "--name-only", hash })
+      local w = math.max(unpack(vim.tbl_map(string.len, files)))
+      if not files or not next(files) then return end
+      vim.fn.setqflist(vim.tbl_map(function(f) return {
+        filename = f,
+        module = string.format("%-" .. w .. "s ", f),
+        text = gh.log(f, 1, "%s"),
+      } end, files), "r")
+      vim.cmd("copen")
+      vim.cmd("cfirst")
+      gh.diff_view(hash)
+    end
+  )
 end
 
 M.qf_diff = function(dir)
