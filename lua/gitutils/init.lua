@@ -125,13 +125,30 @@ M.diff = function()
     function(hash)
       diff_hash = hash
       local files = vim.fn.systemlist({ "git", "diff", "--name-only", hash })
+      local status_map = {}
+      for _, line in ipairs(vim.fn.systemlist({ "git", "status", "--porcelain" })) do
+        local status = line:sub(1,2)
+        local file = line:sub(4)
+        status_map[file] = status
+        if not vim.tbl_contains(files, file) then
+          table.insert(files, file)
+        end
+      end
+
       local w = math.max(unpack(vim.tbl_map(string.len, files)))
-      if not files or not next(files) then return end
-      vim.fn.setqflist(vim.tbl_map(function(f) return {
-        filename = f,
-        module = string.format("%-" .. w .. "s ", f),
-        text = gh.log(f, 1, "%s"),
-      } end, files), "r")
+      local indent_qf = function(status_map, file)
+        if not next(status_map) then return "" end
+        return status_map[file] or "  "
+      end
+
+      vim.fn.setqflist(vim.tbl_map(function(file)
+        local status = indent_qf(status_map, file)
+        return {
+          filename = file,
+          module = string.format("%s %-" .. w .. "s ", status, file),
+          text = gh.log(file, 1, "%s"),
+        }
+      end, files), "r")
       vim.cmd("copen")
       vim.cmd("cfirst")
       gh.diff_view(hash)
