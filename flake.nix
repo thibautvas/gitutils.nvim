@@ -1,5 +1,5 @@
 {
-  description = "clean nvim with gitutils.nvim";
+  description = "gitutils.nvim";
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
@@ -8,16 +8,19 @@
     let
       inherit (nixpkgs) lib;
       forAllSystems = lib.genAttrs lib.systems.flakeExposed;
+
     in
     {
       packages = forAllSystems (
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+
           gitutils-nvim = pkgs.vimUtils.buildVimPlugin {
             name = "gitutils.nvim";
             src = ./.;
           };
+
           customRC = ''
             lua << EOF
               vim.opt.number = true
@@ -39,6 +42,18 @@
               vim.keymap.set("n", "<space>hx", gu.rebase, { desc = "Gitutils interactive rebase" })
               vim.keymap.set("n", "<space>hv", gu.continue, { desc = "Gitutils rebase continue" })
 
+              vim.keymap.set("n", "<space>hf", function()
+                require("gitsigns").stage_hunk(nil, {}, function()
+                  gu.extend()
+                end)
+              end, { desc = "Gitsigns stage and Gitutils extend" })
+              vim.keymap.set("v", "<space>hf", function()
+                require("gitsigns").stage_hunk({ vim.fn.line("."), vim.fn.line("v") }, {}, function()
+                  gu.extend()
+                end)
+              end, { desc = "Gitsigns stage and Gitutils extend" })
+
+              vim.keymap.set("n", "<space>ht", gu.diffthis, { desc = "Gitutils diff buffer" })
               vim.keymap.set("n", "<space>hg", gu.diff, { desc = "Gitutils diff repo" })
               vim.keymap.set("n", "]g", function()
                 gu.qf_diff("next")
@@ -49,20 +64,27 @@
             EOF
           '';
 
-          neovimConfig = pkgs.neovimUtils.makeNeovimConfig {
-            inherit customRC;
-            plugins = with pkgs.vimPlugins; [
-              gitutils-nvim
-              gitsigns-nvim
-            ];
-          };
-
-          customNvim = pkgs.wrapNeovimUnstable pkgs.neovim-unwrapped neovimConfig;
-
+          wrappedNvim = pkgs.wrapNeovimUnstable pkgs.neovim-unwrapped (
+            pkgs.neovimUtils.makeNeovimConfig {
+              inherit customRC;
+              plugins = with pkgs.vimPlugins; [
+                gitutils-nvim
+                gitsigns-nvim
+              ];
+            }
+          );
         in
         {
-          default = customNvim;
+          default = gitutils-nvim;
+          nvim = wrappedNvim;
         }
       );
+
+      apps = forAllSystems (system: {
+        default = {
+          type = "app";
+          program = "${self.packages.${system}.nvim}/bin/nvim";
+        };
+      });
     };
 }
