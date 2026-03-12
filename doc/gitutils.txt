@@ -1,0 +1,243 @@
+*gitutils.txt*  Gitutils plugin for Neovim
+
+Author:   thibautvas <thibautvas@gmail.com>
+Homepage: <https://github.com/thibautvas/gitutils.nvim>
+License:  MIT license
+
+==============================================================================
+CONTENTS                                                             *gitutils*
+
+  1. Introduction .............. |gitutils-introduction|
+  2. Requirements .............. |gitutils-requirements|
+  3. Setup ..................... |gitutils-setup|
+  4. Commands .................. |gitutils-commands|
+  5. Lua API ................... |gitutils-api|
+  6. Global Variables .......... |gitutils-globals|
+  7. Configuration Examples .... |gitutils-examples|
+
+==============================================================================
+INTRODUCTION                                            *gitutils-introduction*
+
+gitutils.nvim is a minimal neovim plugin that streamlines common git workflows
+directly within the editor. It provides a simple interface for git operations,
+such as commit, checkout, rebase, and diff operations.
+
+It is designed to complement plugins like gitsigns.nvim and does not aim to
+replicate the full functionality of tools like lazygit or neogit.
+
+==============================================================================
+REQUIREMENTS                                            *gitutils-requirements*
+
+  - Neovim 0.9+
+  - git executable available in $PATH
+  - A running Neovim server (for interactive rebase: |--listen|)
+
+==============================================================================
+SETUP                                                          *gitutils-setup*
+
+Call `setup()` from your configuration to register the |:Gitutils| command: >lua
+
+  require("gitutils").setup()
+<
+
+No options are currently accepted. The plugin registers no keymaps by default;
+see |gitutils-examples| for a suggested keymap configuration.
+
+==============================================================================
+COMMANDS                                                    *gitutils-commands*
+
+All subcommands are invoked via: >
+
+  :Gitutils {subcommand}
+<
+Tab completion is available for subcommand names.
+
+------------------------------------------------------------------------------
+                                                            *:Gitutils-commit*
+`:Gitutils commit`
+
+Prompts for a commit message and runs `git commit -m {msg}`. Refreshes
+|gitutils_head| on success.
+
+------------------------------------------------------------------------------
+                                                             *:Gitutils-amend*
+`:Gitutils amend`
+
+Prompts for a new message and runs `git commit --amend -m {msg}`. Refreshes
+|gitutils_head| on success.
+
+------------------------------------------------------------------------------
+                                                            *:Gitutils-extend*
+`:Gitutils extend`
+
+Amends the last commit without changing its message (`--no-edit`). Useful in
+combination with a hunk-staging workflow (e.g. gitsigns stage_hunk).
+
+------------------------------------------------------------------------------
+                                                          *:Gitutils-checkout*
+`:Gitutils checkout`
+
+Shows the last 5 commits and prompts for a hash or branch name. Runs
+`git checkout {hash}`. If the ref does not exist, offers to create a new
+branch with that name. Reloads all buffers and refreshes |gitutils_head|.
+
+Relative refs (e.g. `~3`) are expanded to `HEAD~3`.
+
+------------------------------------------------------------------------------
+                                                            *:Gitutils-rebase*
+`:Gitutils rebase`
+
+Shows the last 5 commits and prompts for a base hash. Starts an interactive
+rebase (`git rebase -i {hash}`) with the rebase-todo file opened in the
+current Neovim instance via `--server --remote`.
+
+When the rebase-todo buffer is unloaded, the rebase proceeds. Use
+|:Gitutils-continue| to resume after resolving conflicts.
+
+Requires a running Neovim server (|v:servername| must be set).
+
+Relative refs (e.g. `~3`) are expanded to `HEAD~3`.
+
+------------------------------------------------------------------------------
+                                                          *:Gitutils-continue*
+`:Gitutils continue`
+
+Continues an in-progress interactive rebase (`git rebase --continue`). Must
+be called after resolving conflicts following a |:Gitutils-rebase| session.
+Notifies if no rebase is in progress.
+
+------------------------------------------------------------------------------
+                                                          *:Gitutils-diffthis*
+`:Gitutils diffthis`
+
+Shows the last 5 commits and prompts for a hash. Opens a vertical diff split
+comparing the current buffer against that commit.
+
+Relative refs (e.g. `~3`) are expanded to `HEAD~3`.
+
+------------------------------------------------------------------------------
+                                                              *:Gitutils-diff*
+`:Gitutils diff`
+
+Shows the last 5 commits and prompts for a hash. Builds a quickfix list of
+all files changed between HEAD and that commit, merged with the current
+working tree status. Each entry shows:
+
+  - Two-character git status (e.g. `M `, ` M`, `A `)
+  - File path
+  - Last commit message that touched the file
+
+Opens the quickfix window and immediately diffs the first file. Navigate
+entries with |:Gitutils-qf_diff| or standard quickfix commands.
+
+==============================================================================
+LUA API                                                          *gitutils-api*
+
+All commands are also available as Lua functions on the module: >lua
+
+  local gu = require("gitutils")
+
+  gu.commit()
+  gu.amend()
+  gu.extend()
+  gu.checkout()
+  gu.rebase()
+  gu.continue()
+  gu.diffthis()
+  gu.diff()
+  gu.qf_diff({dir})    -- "next" or "prev"
+<
+
+------------------------------------------------------------------------------
+`require("gitutils").qf_diff`({dir})                         *gitutils.qf_diff*
+
+Navigate the quickfix diff list populated by |:Gitutils-diff|. {dir} is
+either `"next"` or `"prev"`. Closes the current diff window, moves to the
+next or previous quickfix entry, and opens a new diff view for that file.
+
+Guards against boundary conditions (first/last entry).
+
+Example: >lua
+
+  vim.keymap.set("n", "]g", function() gu.qf_diff("next") end)
+  vim.keymap.set("n", "[g", function() gu.qf_diff("prev") end)
+<
+
+------------------------------------------------------------------------------
+`require("gitutils.helpers").refresh_head`()          *gitutils.refresh_head*
+
+Updates |gitutils_head| with the current branch name and last commit message.
+Safe to call at any time; sets the variable to `""` if not in a git repo.
+
+==============================================================================
+GLOBAL VARIABLES                                            *gitutils-globals*
+
+                                                             *gitutils_head*
+`vim.g.gitutils_head`
+
+A string updated by commit, amend, extend, checkout, rebase, and
+|gitutils.refresh_head|. Format: >
+
+  {last commit message} -> {branch name}
+<
+Useful for displaying git context in the ruler or statusline. See
+|gitutils-examples|.
+
+==============================================================================
+CONFIGURATION EXAMPLES                                      *gitutils-examples*
+
+------------------------------------------------------------------------------
+Ruler integration~
+
+Display |gitutils_head| in the ruler and refresh it on startup and directory
+change: >lua
+
+  require("gitutils").setup()
+
+  vim.api.nvim_create_autocmd({ "VimEnter", "DirChanged" }, {
+    pattern = "*",
+    callback = require("gitutils.helpers").refresh_head,
+  })
+
+  vim.opt.rulerformat = '%66(%{g:gitutils_head}%= %l,%c%)'
+<
+
+------------------------------------------------------------------------------
+Keymaps~
+>lua
+  local gu = require("gitutils")
+
+  vim.keymap.set("n", "<leader>hc", gu.commit,   { desc = "Gitutils commit" })
+  vim.keymap.set("n", "<leader>he", gu.extend,   { desc = "Gitutils extend" })
+  vim.keymap.set("n", "<leader>hb", gu.checkout, { desc = "Gitutils checkout" })
+  vim.keymap.set("n", "<leader>hx", gu.rebase,   { desc = "Gitutils rebase" })
+  vim.keymap.set("n", "<leader>hv", gu.continue, { desc = "Gitutils rebase continue" })
+  vim.keymap.set("n", "<leader>ht", gu.diffthis, { desc = "Gitutils diff buffer" })
+  vim.keymap.set("n", "<leader>hg", gu.diff,     { desc = "Gitutils diff repo" })
+
+  vim.keymap.set("n", "]g", function() gu.qf_diff("next") end, { desc = "Gitutils next diff" })
+  vim.keymap.set("n", "[g", function() gu.qf_diff("prev") end, { desc = "Gitutils prev diff" })
+<
+
+------------------------------------------------------------------------------
+Gitsigns integration~
+
+Stage a hunk and immediately extend the last commit: >lua
+
+  vim.keymap.set("n", "<leader>hf", function()
+    require("gitsigns").stage_hunk(nil, {}, function()
+      require("gitutils").extend()
+    end)
+  end, { desc = "Stage hunk and extend" })
+<
+
+------------------------------------------------------------------------------
+Nix / playground~
+
+Run the plugin in an isolated Neovim environment: >sh
+
+  nix run github:thibautvas/gitutils.nvim
+<
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
