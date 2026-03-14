@@ -5,6 +5,7 @@ local gh = require("gitutils.helpers")
 M.checkout = function()
   vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\nCheckout: " }, function(hash)
     if not hash or hash == "" then return end
+    hash = gh.rel_head(hash)
     local output = vim.fn.system({ "git", "checkout", hash })
     if output:find("pathspec") and output:find("did not match") then
       vim.ui.input({ prompt = "Create branch " .. hash .. "? " }, function(yn)
