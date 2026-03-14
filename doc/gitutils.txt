@@ -59,12 +59,18 @@ Tab completion is available for subcommand names.
 Prompts for a commit message and runs `git commit -m {msg}`. Refreshes
 |gitutils_head| on success.
 
+Appending `!` to the message triggers a second prompt for a commit
+description, passed as an additional `-m {desc}` argument.
+
 ------------------------------------------------------------------------------
                                                              *:Gitutils-amend*
 `:Gitutils amend`
 
 Prompts for a new message and runs `git commit --amend -m {msg}`. Refreshes
 |gitutils_head| on success.
+
+Appending `!` to the message triggers a second prompt for a commit
+description, passed as an additional `-m {desc}` argument.
 
 ------------------------------------------------------------------------------
                                                             *:Gitutils-extend*
