@@ -45,7 +45,7 @@ which I have used in the past but never to their fullest extent.
 The above commands become available in the nvim command line when the setup function is called,
 for example via:
 #+begin_src lua
-local gu = require("gitutils)
+local gu = require("gitutils")
 gu.setup()
 #+end_src
 
@@ -81,9 +81,10 @@ vim.keymap.set("n", "<leader>hx", gu.rebase, { desc = "Gitutils interactive reba
 vim.keymap.set("n", "<leader>hv", gu.continue, { desc = "Gitutils rebase continue" })
 
 vim.keymap.set("n", "<leader>hf", function()
-  gs.stage_hunk(nil, {}, function()
-    gu.extend()
-  end)
+  require("gitsigns").stage_hunk(nil, {}, gu.extend)
+end, { desc = "Gitsigns stage and Gitutils extend" })
+vim.keymap.set("v", "<leader>hf", function()
+  require("gitsigns").stage_hunk({ vim.fn.line("."), vim.fn.line("v") }, {}, gu.extend)
 end, { desc = "Gitsigns stage and Gitutils extend" })
 
 vim.keymap.set("n", "<leader>ht", gu.diffthis, { desc = "Gitutils diff buffer" })
