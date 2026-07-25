@@ -107,11 +107,32 @@
             }
           ];
 
+          wrapperArgs =
+            let
+              extraPkgs = [ pkgs.gitMinimal ];
+              gitEnvScript = ''
+                git config user.name &>/dev/null ||
+                  export GIT_AUTHOR_NAME='placeholder' \
+                         GIT_COMMITTER_NAME='placeholder'
+                git config user.email &>/dev/null ||
+                  export GIT_AUTHOR_EMAIL='place@holder.com' \
+                         GIT_COMMITTER_EMAIL='place@holder.com'
+              '';
+            in
+            [
+              "--prefix"
+              "PATH"
+              ":"
+              (pkgs.lib.makeBinPath extraPkgs)
+              "--run"
+              gitEnvScript
+            ];
+
         in
         {
           default = gitutils-nvim;
           nvim = pkgs.wrapNeovimUnstable pkgs.neovim-unwrapped {
-            inherit luaRcContent plugins;
+            inherit luaRcContent plugins wrapperArgs;
           };
         }
       );
