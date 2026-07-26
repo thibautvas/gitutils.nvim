@@ -32,6 +32,8 @@ M.rebase = function()
     if not hash or hash == "" then return end
     hash = gh.rel_head(hash)
 
+    local nvim_bin = vim.v.progpath
+
     local server = vim.v.servername
     if not server or server == "" then return end
 
@@ -41,8 +43,8 @@ M.rebase = function()
     local script = vim.fn.tempname() .. ".sh"
     local f = assert(io.open(script, "w"))
     f:write(string.format(
-      "#!/bin/sh\nnvim --server '%s' --remote \"$1\"\ncat '%s' > /dev/null\n",
-      server, fifo))
+      "#!/bin/sh\n'%s' --server '%s' --remote \"$1\"\ncat '%s' > /dev/null\n",
+      nvim_bin, server, fifo))
     f:close()
     vim.fn.system({ "chmod", "+x", script })
 
