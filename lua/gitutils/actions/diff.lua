@@ -4,11 +4,13 @@ local gh = require("gitutils.helpers")
 local diff_hash = nil
 
 local function diff_buf(hash)
-  local filepath = vim.fn.expand("%")
-  if not filepath or filepath == "" then
+  local bufname = vim.api.nvim_buf_get_name(0)
+  if not bufname or bufname == "" then
     vim.notify("No file in buffer", vim.log.levels.WARN)
     return true
   end
+  local repo_root = vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })[1]
+  local filepath = vim.fs.relpath(repo_root, bufname)
   local filetype = vim.bo.filetype
   local content = vim.fn.systemlist({ "git", "show", hash .. ":" .. filepath })
   if vim.v.shell_error ~= 0 then
@@ -54,13 +56,14 @@ local function collect_diff_files(hash)
 end
 
 local function build_diff_qf(files, status_map)
+  local root = vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })[1]
   local w = math.max(unpack(vim.tbl_map(string.len, files)))
   return vim.tbl_map(function(file)
     local status = next(status_map) and (status_map[file] or "  ") or ""
     return {
-      filename = file,
+      filename = root .. "/" .. file,
       module = string.format("%s %-" .. w .. "s ", status, file),
-      text = gh.log(file, 1, "%s"),
+      text = gh.log(filename, 1, "%s"),
     }
   end, files)
 end
