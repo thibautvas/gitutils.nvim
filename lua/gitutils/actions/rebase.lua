@@ -12,8 +12,8 @@ local function rebase_exit(state)
     vim.schedule(function()
       vim.cmd("checktime")
       gh.refresh_head()
-      -- TODO: check from subdir
-      local in_progress = vim.fn.isdirectory(".git/rebase-merge") == 1
+      local repo_root = vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })[1]
+      local in_progress = vim.fn.isdirectory(repo_root .. "/.git/rebase-merge") == 1
       if in_progress then
         vim.notify("Rebase in progress")
         return
