@@ -59,10 +59,11 @@ local function build_diff_qf(files, status_map)
   local root = vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })[1]
   local w = math.max(unpack(vim.tbl_map(string.len, files)))
   return vim.tbl_map(function(file)
+    local filename = root .. "/" .. file
     local status = next(status_map) and (status_map[file] or "  ") or ""
     return {
-      filename = root .. "/" .. file,
-      module = string.format("%s %-" .. w .. "s ", status, file),
+      filename = filename,
+      module = string.format("%s %s ", status, file),
       text = gh.log(filename, 1, "%s"),
     }
   end, files)
