@@ -2,7 +2,7 @@
 
 ** Playground
 #+begin_src bash
-nix run github:thibautvas/gitutils.nvim
+nix run github:thibautvas/gitutils.nvim#nvim
 #+end_src
 
 ** Introduction
