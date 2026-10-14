@@ -8,6 +8,7 @@ for fn, mod in pairs({
   diffthis = "diff",
   diff     = "diff",
   qf_diff  = "diff",
+  diffpast = "diff",
   rebase   = "rebase",
   continue = "rebase",
 }) do
@@ -30,6 +31,7 @@ M.setup = function()
     "extend",
     "diffthis",
     "diff",
+    "diffpast",
     "rebase",
     "continue",
   }) do

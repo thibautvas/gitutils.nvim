@@ -86,6 +86,12 @@ let
         vim.keymap.set("n", "[g", function()
           gu.qf_diff("prev")
         end, { desc = "Gitutils prev diff" })
+        vim.keymap.set("n", "]s", function()
+          gu.diffpast("next")
+        end, { desc = "Gitutils older diff" })
+        vim.keymap.set("n", "[s", function()
+          gu.diffpast("prev")
+        end, { desc = "Gitutils newer diff" })
       '';
     }
   ];
