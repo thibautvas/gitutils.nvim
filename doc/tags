@@ -3,6 +3,7 @@
 :Gitutils-commit	gitutils.txt	/*:Gitutils-commit*
 :Gitutils-continue	gitutils.txt	/*:Gitutils-continue*
 :Gitutils-diff	gitutils.txt	/*:Gitutils-diff*
+:Gitutils-diffpast	gitutils.txt	/*:Gitutils-diffpast*
 :Gitutils-diffthis	gitutils.txt	/*:Gitutils-diffthis*
 :Gitutils-extend	gitutils.txt	/*:Gitutils-extend*
 :Gitutils-rebase	gitutils.txt	/*:Gitutils-rebase*
@@ -14,6 +15,7 @@ gitutils-globals	gitutils.txt	/*gitutils-globals*
 gitutils-introduction	gitutils.txt	/*gitutils-introduction*
 gitutils-requirements	gitutils.txt	/*gitutils-requirements*
 gitutils-setup	gitutils.txt	/*gitutils-setup*
+gitutils.diffpast	gitutils.txt	/*gitutils.diffpast*
 gitutils.qf_diff	gitutils.txt	/*gitutils.qf_diff*
 gitutils.refresh_head	gitutils.txt	/*gitutils.refresh_head*
 gitutils.txt	gitutils.txt	/*gitutils.txt*

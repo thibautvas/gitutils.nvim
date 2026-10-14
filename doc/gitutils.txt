@@ -134,7 +134,16 @@ working tree status. Each entry shows:
   - Last commit message that touched the file
 
 Opens the quickfix window and immediately diffs the first file. Navigate
-entries with |:Gitutils-qf_diff| or standard quickfix commands.
+entries with |gitutils.qf_diff| or standard quickfix commands.
+
+------------------------------------------------------------------------------
+                                                          *:Gitutils-diffpast*
+`:Gitutils diffpast`
+
+Walks through history one commit at a time, showing the changes introduced
+by each commit. See |gitutils.diffpast| for details. As a command it is
+called without a direction, which behaves like `"prev"` (towards older
+commits); the Lua function bound to keymaps is the intended entry point.
 
 ==============================================================================
 LUA API                                                          *gitutils-api*
@@ -152,6 +161,7 @@ All commands are also available as Lua functions on the module: >lua
   gu.diffthis()
   gu.diff()
   gu.qf_diff({dir})    -- "next" or "prev"
+  gu.diffpast({dir})   -- "next" (newer) or "prev" (older)
 <
 
 ------------------------------------------------------------------------------
@@ -167,6 +177,33 @@ Example: >lua
 
   vim.keymap.set("n", "]g", function() gu.qf_diff("next") end)
   vim.keymap.set("n", "[g", function() gu.qf_diff("prev") end)
+<
+
+------------------------------------------------------------------------------
+`require("gitutils").diffpast`({dir})                       *gitutils.diffpast*
+
+Steps through history commit by commit, tracking an offset {n} from HEAD
+(starting at 0, the working tree). {dir} is either:
+
+  - `"prev"`: move one commit back in history (offset + 1)
+  - `"next"`: move one commit forward, towards the working tree (offset - 1)
+
+For an offset {n} > 0, builds the same quickfix list as |:Gitutils-diff|
+with the files changed between `HEAD~{n}` and `HEAD~{n-1}` (i.e. the changes
+introduced by that single commit), and diffs the first file with both sides
+read from git. Working tree status is not merged in this mode. At offset 0,
+it falls back to diffing `HEAD` against the working tree.
+
+Each call closes the current diff windows (restoring the original buffer)
+before opening the new view. Moving forward past the working tree is a
+no-op. A regular |:Gitutils-diff| resets the offset.
+
+|gitutils.qf_diff| works on the resulting quickfix list as usual.
+
+Example: >lua
+
+  vim.keymap.set("n", "[s", function() gu.diffpast("prev") end)
+  vim.keymap.set("n", "]s", function() gu.diffpast("next") end)
 <
 
 ------------------------------------------------------------------------------
@@ -223,6 +260,8 @@ Keymaps~
 
   vim.keymap.set("n", "]g", function() gu.qf_diff("next") end, { desc = "Gitutils next diff" })
   vim.keymap.set("n", "[g", function() gu.qf_diff("prev") end, { desc = "Gitutils prev diff" })
+  vim.keymap.set("n", "[s", function() gu.diffpast("prev") end, { desc = "Gitutils older commit diff" })
+  vim.keymap.set("n", "]s", function() gu.diffpast("next") end, { desc = "Gitutils newer commit diff" })
 <
 
 ------------------------------------------------------------------------------
