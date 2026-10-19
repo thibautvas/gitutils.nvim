@@ -1,5 +1,9 @@
 local M = {}
 
+M.root = function()
+  return vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })[1]
+end
+
 M.log = function(ref, lb, format)
   return vim.fn.system({ "git", "log", "--reverse", "-n" .. lb, "--pretty=format:" .. format, ref })
 end
