@@ -4,13 +4,18 @@ M.root = function()
   return vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })[1]
 end
 
-M.log = function(ref, lb, format)
-  return vim.fn.system({ "git", "log", "--reverse", "-n" .. lb, "--pretty=format:" .. format, ref })
+M.log = function(rev, lb, format, path)
+  local cmd = { "git", "log", "--reverse", "-n" .. lb, "--pretty=format:" .. format, rev }
+  if path then vim.list_extend(cmd, { "--", path }) end
+  return vim.fn.system(cmd)
 end
 
-M.rel_head = function(arg)
-  if arg:match("^~%d+$") then return "HEAD" .. arg end
-  return arg
+M.prompt_rev = function(msg, callback)
+  vim.ui.input({ prompt = M.log("HEAD", 5, "%h %s%d") .. "\n" .. msg }, function(rev)
+    if not rev or rev == "" then return end
+    if rev:match("^~%d+$") then rev = "HEAD" .. rev end
+    callback(rev)
+  end)
 end
 
 M.refresh_head = function()
@@ -19,9 +24,8 @@ M.refresh_head = function()
     vim.g.gitutils_head = ""
     return
   end
-  local ref_clean = vim.trim(ref)
   local title = M.log("HEAD", 1, "%s")
-  vim.g.gitutils_head = title .. " -> " .. ref_clean
+  vim.g.gitutils_head = title .. " -> " .. vim.trim(ref)
 end
 
 return M
