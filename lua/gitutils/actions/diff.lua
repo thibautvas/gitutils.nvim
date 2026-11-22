@@ -56,7 +56,7 @@ local function collect_files(rev, base)
     table.insert(entries, {
       filename = filename,
       module = string.format("%s %s ", status, file),
-      text = gh.log(filename, 1, "%s"),
+      text = vim.fn.system({ "git", "log", "-n1", "--pretty=format:%s", base or "HEAD", filename }),
     })
   end
   return entries
