@@ -12,8 +12,7 @@ local function rebase_exit(state)
     vim.schedule(function()
       vim.cmd("checktime")
       gh.refresh_head()
-      local repo_root = vim.fn.systemlist({ "git", "rev-parse", "--show-toplevel" })[1]
-      local in_progress = vim.fn.isdirectory(repo_root .. "/.git/rebase-merge") == 1
+      local in_progress = vim.fn.isdirectory(gh.root() .. "/.git/rebase-merge") == 1
       if in_progress then
         vim.notify("Rebase in progress")
         return
@@ -28,10 +27,7 @@ local function rebase_exit(state)
 end
 
 M.rebase = function()
-  vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\nRebase from: " }, function(hash)
-    if not hash or hash == "" then return end
-    hash = gh.rel_head(hash)
-
+  gh.prompt_rev("Rebase from: ", function(hash)
     local nvim_bin = vim.v.progpath
 
     local server = vim.v.servername

@@ -2,13 +2,6 @@ local M = {}
 
 local gh = require("gitutils.helpers")
 
-local function prompt_rev(msg, callback)
-  vim.ui.input({ prompt = gh.log("HEAD", 5, "%h %s%d") .. "\n" .. msg }, function(rev)
-    if rev == "" then return end
-    callback(gh.rel_head(rev))
-  end)
-end
-
 local function git_show(rev, filepath)
   local lines = vim.fn.systemlist({ "git", "show", rev .. ":" .. filepath })
   return vim.v.shell_error == 0 and lines or {}
@@ -56,7 +49,7 @@ local function collect_files(rev, base)
     table.insert(entries, {
       filename = filename,
       module = string.format("%s %s ", status, file),
-      text = vim.fn.system({ "git", "log", "-n1", "--pretty=format:%s", base or "HEAD", filename }),
+      text = gh.log(base or "HEAD", 1, "%s", filename),
     })
   end
   return entries
@@ -76,7 +69,7 @@ local function close_diff_wins()
 end
 
 M.diffthis = function()
-  prompt_rev("Diff against: ", function(rev)
+  gh.prompt_rev("Diff against: ", function(rev)
     close_diff_wins()
     diff_buf(rev)
   end)
@@ -106,7 +99,7 @@ M.diff = function(rev, base, offset)
   if rev then
     diff_repo(rev)
   else
-    prompt_rev("Diff repo against: ", diff_repo)
+    gh.prompt_rev("Diff repo against: ", diff_repo)
   end
 end
 
