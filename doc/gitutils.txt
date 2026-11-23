@@ -85,8 +85,8 @@ combination with a hunk-staging workflow (e.g. gitsigns stage_hunk).
                                                           *:Gitutils-checkout*
 `:Gitutils checkout`
 
-Shows the last 5 commits and prompts for a hash or branch name. Runs
-`git checkout {hash}`. If the ref does not exist, offers to create a new
+Shows the last 5 commits and prompts for a rev (hash or branch name). Runs
+`git checkout {rev}`. If the ref does not exist, offers to create a new
 branch with that name. Reloads all buffers and refreshes |gitutils_head|.
 
 Relative refs (e.g. `~3`) are expanded to `HEAD~3`.
@@ -95,8 +95,8 @@ Relative refs (e.g. `~3`) are expanded to `HEAD~3`.
                                                             *:Gitutils-rebase*
 `:Gitutils rebase`
 
-Shows the last 5 commits and prompts for a base hash. Starts an interactive
-rebase (`git rebase -i {hash}`) with the rebase-todo file opened in the
+Shows the last 5 commits and prompts for a base rev. Starts an interactive
+rebase (`git rebase -i {rev}`) with the rebase-todo file opened in the
 current Neovim instance via `--server --remote`.
 
 When the rebase-todo buffer is unloaded, the rebase proceeds. Use
@@ -118,7 +118,7 @@ Notifies if no rebase is in progress.
                                                           *:Gitutils-diffthis*
 `:Gitutils diffthis`
 
-Shows the last 5 commits and prompts for a hash. Opens a vertical diff split
+Shows the last 5 commits and prompts for a rev. Opens a vertical diff split
 comparing the current buffer against that commit.
 
 Relative refs (e.g. `~3`) are expanded to `HEAD~3`.
@@ -127,7 +127,7 @@ Relative refs (e.g. `~3`) are expanded to `HEAD~3`.
                                                               *:Gitutils-diff*
 `:Gitutils diff`
 
-Shows the last 5 commits and prompts for a hash. Builds a quickfix list of
+Shows the last 5 commits and prompts for a rev. Builds a quickfix list of
 all files changed between HEAD and that commit, merged with the current
 working tree status. Each entry shows:
 

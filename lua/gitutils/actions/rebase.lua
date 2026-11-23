@@ -27,7 +27,7 @@ local function rebase_exit(state)
 end
 
 M.rebase = function()
-  gh.prompt_rev("Rebase from: ", function(hash)
+  gh.prompt_rev("Rebase from: ", function(rev)
     local nvim_bin = vim.v.progpath
 
     local server = vim.v.servername
@@ -61,7 +61,7 @@ M.rebase = function()
 
     rebase_state = { fifo = fifo, script = script, env = env, au_id = au_id }
 
-    vim.fn.jobstart({ "git", "rebase", "-i", hash }, {
+    vim.fn.jobstart({ "git", "rebase", "-i", rev }, {
       env = env,
       on_exit = rebase_exit(rebase_state),
     })
