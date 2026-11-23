@@ -3,12 +3,12 @@ local M = {}
 local gh = require("gitutils.helpers")
 
 M.checkout = function()
-  gh.prompt_rev("Checkout: ", function(hash)
-    local output = vim.fn.system({ "git", "checkout", hash })
+  gh.prompt_rev("Checkout: ", function(rev)
+    local output = vim.fn.system({ "git", "checkout", rev })
     if output:find("pathspec") and output:find("did not match") then
-      vim.ui.input({ prompt = "Create branch " .. hash .. "? " }, function(yn)
+      vim.ui.input({ prompt = "Create branch " .. rev .. "? " }, function(yn)
         if yn ~= "y" then return end
-        vim.fn.system({ "git", "checkout", "-b", hash })
+        vim.fn.system({ "git", "checkout", "-b", rev })
       end)
     end
     if vim.v.shell_error ~= 0 then

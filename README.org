@@ -34,11 +34,11 @@ which I have used in the past but never to their fullest extent.
 | Gitutils commit   | ~git commit -m <msg>~          |
 | Gitutils amend    | ~git commit --amend -m <msg>~  |
 | Gitutils extend   | ~git commit --amend --no-edit~ |
-| Gitutils checkout | ~git checkout <hash>~          |
-| Gitutils rebase   | ~git rebase -i <hash>~         |
+| Gitutils checkout | ~git checkout <rev>~           |
+| Gitutils rebase   | ~git rebase -i <rev>~          |
 | Gitutils continue | ~git rebase --continue~        |
-| Gitutils diffthis | ~git diff <hash> <file>~       |
-| Gitutils diff     | ~git diff <hash>~              |
+| Gitutils diffthis | ~git diff <rev> <file>~        |
+| Gitutils diff     | ~git diff <rev>~               |
 | Gitutils diffpast | ~git diff HEAD~<n> HEAD~<n-1>~ |
 
 ** Configuration
