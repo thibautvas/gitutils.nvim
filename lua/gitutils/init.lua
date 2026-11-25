@@ -18,11 +18,6 @@ for fn, mod in pairs({
 end
 
 M.setup = function()
-  if vim.fn.executable("git") == 0 then
-    vim.notify("git not found", vim.log.levels.ERROR)
-    return
-  end
-
   local subcmds = {}
   for _, key in ipairs({
     "checkout",

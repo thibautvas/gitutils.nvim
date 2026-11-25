@@ -28,9 +28,11 @@ replicate the full functionality of tools like lazygit or neogit.
 ==============================================================================
 REQUIREMENTS                                            *gitutils-requirements*
 
-  - Neovim 0.9+
+  - Neovim 0.11+
   - git executable available in $PATH
   - A running Neovim server (for interactive rebase: |--listen|)
+
+  Run `:checkhealth gitutils` to check that git is available.
 
 ==============================================================================
 SETUP                                                          *gitutils-setup*
