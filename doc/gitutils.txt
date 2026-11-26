@@ -128,10 +128,10 @@ Relative refs (e.g. `~3`) are expanded to `HEAD~3`.
 `:Gitutils diff`
 
 Shows the last 5 commits and prompts for a rev. Builds a quickfix list of
-all files changed between HEAD and that commit, merged with the current
-working tree status. Each entry shows:
+all files changed between that rev and the working tree
+(`git diff --name-status {rev}`). Each entry shows:
 
-  - Two-character git status (e.g. `M `, ` M`, `A `)
+  - Git status (e.g. `M`, `A`, `D`)
   - File path
   - Last commit message that touched the file
 
@@ -193,8 +193,8 @@ Steps through history commit by commit, tracking an offset {n} from HEAD
 For an offset {n} > 0, builds the same quickfix list as |:Gitutils-diff|
 with the files changed between `HEAD~{n}` and `HEAD~{n-1}` (i.e. the changes
 introduced by that single commit), and diffs the first file with both sides
-read from git. Working tree status is not merged in this mode. At offset 0,
-it falls back to diffing `HEAD` against the working tree.
+read from git. At offset 0, it falls back to diffing `HEAD` against the
+working tree.
 
 Each call closes the current diff windows (restoring the original buffer)
 before opening the new view. Moving forward past the working tree is a

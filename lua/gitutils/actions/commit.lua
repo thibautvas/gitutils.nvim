@@ -8,7 +8,7 @@ local function git_commit(opts, msg, desc)
   if opts then vim.list_extend(cmd, opts) end
   vim.fn.system(cmd)
   if vim.v.shell_error ~= 0 then
-    vim.notify("Gitutils commit failed", vim.log.levels.ERROR)
+    vim.notify("Gitutils: commit failed", vim.log.levels.ERROR)
     return
   end
   gh.refresh_head()
@@ -36,7 +36,7 @@ M.amend = function() commit_with_flags({ "--amend" }) end
 M.extend = function()
   vim.fn.system({ "git", "commit", "--amend", "--no-edit" })
   if vim.v.shell_error ~= 0 then
-    vim.notify("Gitutils extend failed", vim.log.levels.ERROR)
+    vim.notify("Gitutils: extend failed", vim.log.levels.ERROR)
     return
   end
 end

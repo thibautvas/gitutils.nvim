@@ -6,7 +6,7 @@ local rebase_state
 local function rebase_exit(state)
   return function(_, code)
     if code ~= 0 then
-      vim.notify("Rebase interrupted with code " .. code, vim.log.levels.ERROR)
+      vim.notify("Gitutils: rebase interrupted with code " .. code, vim.log.levels.ERROR)
       return
     end
     vim.schedule(function()
@@ -14,14 +14,14 @@ local function rebase_exit(state)
       gh.refresh_head()
       local in_progress = vim.fn.isdirectory(gh.root() .. "/.git/rebase-merge") == 1
       if in_progress then
-        vim.notify("Rebase in progress")
+        vim.notify("Gitutils: rebase in progress")
         return
       end
       vim.fn.delete(state.script)
       vim.fn.delete(state.fifo)
       vim.api.nvim_del_autocmd(state.au_id)
       rebase_state = nil
-      vim.notify("Rebase done")
+      vim.notify("Gitutils: rebase done")
     end)
   end
 end
@@ -70,7 +70,7 @@ end
 
 M.continue = function()
   if not rebase_state then
-    vim.notify("No rebase in progress", vim.log.levels.WARN)
+    vim.notify("Gitutils: no rebase in progress", vim.log.levels.WARN)
     return
   end
   vim.fn.jobstart({ "git", "rebase", "--continue" }, {

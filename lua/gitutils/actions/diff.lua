@@ -19,7 +19,7 @@ end
 local function diff_buf(rev, base)
   local bufname = vim.api.nvim_buf_get_name(0)
   if bufname == "" then
-    vim.notify("No file in buffer", vim.log.levels.WARN)
+    vim.notify("Gitutils: no file in buffer", vim.log.levels.WARN)
     return
   end
   local filepath = vim.fs.relpath(gh.root(), bufname)
@@ -39,7 +39,7 @@ end
 local function collect_files(rev, base)
   local lines = vim.fn.systemlist({ "git", "diff", "--name-status", rev, base })
   if vim.v.shell_error ~= 0 then
-    vim.notify("Diff: " .. table.concat(lines, "\n"), vim.log.levels.ERROR)
+    vim.notify("Gitutils: diff failed: " .. table.concat(lines, "\n"), vim.log.levels.ERROR)
     return
   end
   local entries = {}
@@ -80,7 +80,7 @@ M.diff = function(rev, base, offset)
     local entries = collect_files(rev, base)
     if not entries then return end
     if #entries == 0 then
-      vim.notify("No diff against " .. rev, vim.log.levels.WARN)
+      vim.notify("Gitutils: no diff against " .. rev, vim.log.levels.WARN)
       return
     end
     close_diff_wins()
