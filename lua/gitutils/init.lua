@@ -36,7 +36,7 @@ M.setup = function()
   vim.api.nvim_create_user_command("Gitutils", function(opts)
     local sub = opts.args
     if not subcmds[sub] then
-      vim.notify("Gitutils unknown subcommand: " .. sub, vim.log.levels.ERROR)
+      vim.notify("Gitutils: unknown subcommand: " .. sub, vim.log.levels.ERROR)
       return
     end
     subcmds[sub]()

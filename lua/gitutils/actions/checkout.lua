@@ -12,7 +12,7 @@ M.checkout = function()
       end)
     end
     if vim.v.shell_error ~= 0 then
-      vim.notify("Gitutils checkout failed", vim.log.levels.ERROR)
+      vim.notify("Gitutils: checkout failed", vim.log.levels.ERROR)
       return
     end
     vim.cmd("checktime")
