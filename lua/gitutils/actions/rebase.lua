@@ -1,7 +1,7 @@
 local M = {}
 
 local gh = require("gitutils.helpers")
-local rebase_state = nil
+local rebase_state
 
 local function rebase_exit(state)
   return function(_, code)
@@ -73,7 +73,7 @@ M.continue = function()
     vim.notify("No rebase in progress", vim.log.levels.WARN)
     return
   end
-  vim.fn.jobstart("git rebase --continue", {
+  vim.fn.jobstart({ "git", "rebase", "--continue" }, {
     env = rebase_state.env,
     on_exit = rebase_exit(rebase_state),
   })

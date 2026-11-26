@@ -40,7 +40,7 @@ local function collect_files(rev, base)
   local lines = vim.fn.systemlist({ "git", "diff", "--name-status", rev, base })
   if vim.v.shell_error ~= 0 then
     vim.notify("Diff: " .. table.concat(lines, "\n"), vim.log.levels.ERROR)
-    return nil
+    return
   end
   local entries = {}
   for _, line in ipairs(lines) do

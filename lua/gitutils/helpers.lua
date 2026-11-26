@@ -19,7 +19,7 @@ M.prompt_rev = function(msg, callback)
 end
 
 M.refresh_head = function()
-  local ref = vim.fn.system("git rev-parse --abbrev-ref HEAD")
+  local ref = vim.fn.system({ "git", "rev-parse", "--abbrev-ref", "HEAD" })
   if vim.v.shell_error ~= 0 then
     vim.g.gitutils_head = ""
     return
